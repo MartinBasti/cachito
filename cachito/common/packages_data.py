@@ -135,6 +135,8 @@ class PackagesData:
         log.debug("Write packages with dependencies into file %s.", file_name)
         with open(file_name, "w", encoding="utf-8") as f:
             json.dump({"packages": self._packages}, f)
+            f.flush()
+            os.fsync(f.fileno())
 
     def load(self, file_name: Union[str, Path]) -> None:
         """Load data from a specified file written by write_to_file method.
