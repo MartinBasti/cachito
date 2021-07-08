@@ -404,16 +404,17 @@ class Request(db.Model):
             latest_state = states[0]
             rv["state_history"] = states
 
-            packages_data = self._get_packages_data()
-            rv["packages"] = packages_data.packages
-            rv["dependencies"] = packages_data.all_dependencies
+            if self._is_complete():
+                packages_data = self._get_packages_data()
+                rv["packages"] = packages_data.packages
+                rv["dependencies"] = packages_data.all_dependencies
 
-            dep: Dict[str, Any]
-            for dep in itertools.chain(
-                rv["dependencies"],
-                (pkg_dep for pkg in rv["packages"] for pkg_dep in pkg["dependencies"]),
-            ):
-                dep.setdefault("replaces", None)
+                dep: Dict[str, Any]
+                for dep in itertools.chain(
+                    rv["dependencies"],
+                    (pkg_dep for pkg in rv["packages"] for pkg_dep in pkg["dependencies"]),
+                ):
+                    dep.setdefault("replaces", None)
 
             if flask.current_app.config["CACHITO_REQUEST_FILE_LOGS_DIR"]:
                 rv["logs"] = {
@@ -429,6 +430,12 @@ class Request(db.Model):
         # Show the latest state information in the first level of the JSON
         rv.update(latest_state)
         return rv
+
+    def _is_complete(self):
+        if self.state:
+            return self.state.state_name == RequestStateMapping.complete.name
+
+        return False
 
     @classmethod
     def from_json(cls, kwargs):
