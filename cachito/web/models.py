@@ -6,6 +6,7 @@ import functools
 import itertools
 import os
 import re
+import time
 from typing import Any, Dict, List
 
 import flask
@@ -404,6 +405,7 @@ class Request(db.Model):
             latest_state = states[0]
             rv["state_history"] = states
 
+            time.sleep(0.1)
             packages_data = self._get_packages_data()
             rv["packages"] = packages_data.packages
             rv["dependencies"] = packages_data.all_dependencies
