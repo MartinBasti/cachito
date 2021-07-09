@@ -404,16 +404,17 @@ class Request(db.Model):
             latest_state = states[0]
             rv["state_history"] = states
 
-            packages_data = self._get_packages_data()
-            rv["packages"] = packages_data.packages
-            rv["dependencies"] = packages_data.all_dependencies
+            if latest_state["state"] == "complete":
+                packages_data = self._get_packages_data()
+                rv["packages"] = packages_data.packages
+                rv["dependencies"] = packages_data.all_dependencies
 
-            dep: Dict[str, Any]
-            for dep in itertools.chain(
-                rv["dependencies"],
-                (pkg_dep for pkg in rv["packages"] for pkg_dep in pkg["dependencies"]),
-            ):
-                dep.setdefault("replaces", None)
+                dep: Dict[str, Any]
+                for dep in itertools.chain(
+                    rv["dependencies"],
+                    (pkg_dep for pkg in rv["packages"] for pkg_dep in pkg["dependencies"]),
+                ):
+                    dep.setdefault("replaces", None)
 
             if flask.current_app.config["CACHITO_REQUEST_FILE_LOGS_DIR"]:
                 rv["logs"] = {
